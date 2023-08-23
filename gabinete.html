@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservas de gabinetes</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/fullcalendar.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.10.2/locale/es.js"></script>
+  <link rel="stylesheet" href="../lib/toastr.min.css">
+  <script src="../lib/toastr.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pickadate/lib/picker.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pickadate/lib/picker.date.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pickadate/lib/picker.time.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickadate/lib/themes/classic.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickadate/lib/themes/classic.date.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pickadate/lib/themes/classic.time.css">
+  <link rel="stylesheet" href="../css/styles.css">
+  <script src="../js/script.js"></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    #calendar {
+      margin: 2rem auto;
+    }
+  </style>
+</head>
+<body onload="armarCabeceraAdmin(), armarFooter(), cargarReservas(),inicializar(),cambiarMaterias(),cargarTablaPendiente()">
+
+<div id="cabecera-admin">
+
+</div>
+
+<div class="container d-flex flex-column mt-4" style="min-height: 100vh">
+  <div class="content mb-4" style="margin-top: -30px">
+    <div class="row">
+      <div class="col-md-8">
+        <div id="calendar"></div>
+      </div>
+      <div class="col-md-4 d-flex flex-column justify-content-start align-items-center mb-4">
+        <br><br><br><br>
+        <button type="button" class="btn btn-primary mb-2" onclick="listarDepartamentos().then(abrirModalAñadirReserva).catch(console.error)">Añadir Reserva</button>
+      </div>
+    </div>
+  <hr>
+  <h1 id="reservas-pendientes">Reservas pendientes</h1>
+  <table class="table table-hover" id="reservasPendientes">
+    <thead>
+    <tr>
+      <th scope="col">Número</th>
+      <th scope="col">Profesor</th>
+      <th scope="col">Materia</th>
+      <th scope="col">Fecha a reservar</th>
+      <th scope="col">Hora inicio</th>
+      <th scope="col">Hora fin</th>
+      <th scope="col">Teléfono</th>
+      <th scope="col">Mail</th>
+      <th scope="col">Acciones</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>
+          <div class="btn btn-primary" onclick="aceptarReserva()">Aceptar</div> 
+          <div class="btn btn-danger" onclick="rechazarReserva()">Rechazar</div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal" id="dayModal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dayModalTitle"></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="dayModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div class="modal fade" id="eventModal" tabindex="-1" role="dialog" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="eventModalLabel">Detalles de la reserva</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <a id="editarReserva" target="_blank"><img src="../img/editar-logo.png" style="float:right ;height: 24px; margin-right: 10px;"></a>
+          <div id="idReserva2" style="display:none"></div>
+          <div id="eventDate"></div>
+          <div id="eventStartAndEnd"></div>
+          <div id="eventTitle"></div>
+          <div id="eventDescription"></div>
+          <div id="eventProfessor"></div>
+          <br>
+          <div>
+            <a>Datos de contacto</a>
+            <hr style="margin-top: 5px; margin-bottom: 5px">
+            <div id="eventNumTelefono"></div>
+            <div id="eventEmail"></div>
+          </div>
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button type="button" class="btn btn-danger" id="deleteButton" onclick="abrirModalRechazarReserva()">Eliminar</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal para registrar una reserva -->
+<div class="modal fade" id="reservaModal" tabindex="-1" role="dialog" aria-labelledby="reservaModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="reservaModalLabel">Registrar Reserva</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="fecha">Fecha:</label>
+            <input type="date" class="form-control" id="fecha" placeholder="Seleccione una fecha">
+          </div>
+          <div class="form-group">
+            <label for="horario">Horario inicio:</label>
+            <input type="time" class="form-control" id="horario" placeholder="Seleccione un horario de inicio">
+          </div>
+          <div class="form-group">
+            <label for="horarioFin">Horario Fin:</label>
+            <input type="time" class="form-control" id="horarioFin" placeholder="Seleccione un horario de fin">
+          </div>
+          <div class="form-group">
+            <label>Gabinetes:</label>
+            <div id="checkboxesGabinetes">
+
+            </div>
+            <span id="contadorEquipos">Cantidad total de equipos: 0</span>
+          </div>
+
+          <div class="form-group">
+            <label for="departamento">Departamento:</label>
+            <select class="form-control" id="departamento">
+
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="materia">Materia:</label>
+            <select class="form-control" id="materia">
+
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="profesor">Profesor:</label>
+            <select class="form-control" id="profesor">
+
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="registrarReserva" onclick="altaReserva()">Registrar</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para eliminar una reserva ya aceptada -->
+<div class="modal fade" id="cancelarModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Eliminar reserva</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>¿Está seguro que desea eliminar la reserva?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="cancelarReserva" data-dismiss="modal" onclick="reservaCancelada()">Eliminar</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para aceptar una reserva -->
+<div class="modal fade" id="modalAceptar" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmar reserva</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>¿Desea aceptar la reserva?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="reservaAceptada()">Aceptar</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de reserva aceptada -->
+<div class="toast toastAceptar ml-auto" data-bs-autohide="true">
+  <div class="toast-header">
+    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+  </div>
+  <div class="toast-body">
+    <p>¡La reserva fue aceptada!</p>
+  </div>
+</div>
+
+<!-- Modal para rechazar reserva -->
+<div class="modal fade" id="rechazarModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rechazar reserva</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>¿Está seguro que desea rechazar la reserva?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" onclick="reservaRechazada()">Eliminar</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast de reserva rechazada -->
+<div class="toast toastRechazar ml-auto" data-autohide="true">
+  <div class="toast-header">
+    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+  </div>
+  <div class="toast-body">
+    <p>La reserva ha sido rechazada.</p>
+  </div>
+</div>
+
+<!-- Footer -->
+<div id="footer">
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="gabinete.js"></script>
+</body>
+</html>
